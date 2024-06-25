@@ -2,8 +2,23 @@ const { Product } = require("../model/product.js");
 
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find({});
-    res.json(products);
+    let query = Product.find({});
+    let length = await Product.countDocuments();
+
+    if (req.query.sort) {
+      query = query.sort({ [req.query.sort]: req.query.order });
+    }
+
+    if (req.query.skip) {
+      query = query.skip(req.query.skip);
+    }
+
+    if (req.query.limit) {
+      query = query.limit(req.query.limit);
+    }
+
+    const products = await query.exec();
+    res.json({ products, length });
   } catch (err) {
     console.error("Error fetching product:", err);
     res.status(500).json({ error: "Error fetching product", err });
